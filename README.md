@@ -12,6 +12,7 @@ You control a basket at the bottom of the screen.
 Emojis fall continuously from the top — each one represents a kind of “emotion” you can catch.  
 
 | Emoji | Meaning | Effect |
+|:------:|:---------|:-------|
 | 😀 😄 😊 | Positive emotion | +1 point |
 | 💖 | Strong positive emotion | +3 points |
 | 😡 | Negative emotion | −1 point, −1 life |
