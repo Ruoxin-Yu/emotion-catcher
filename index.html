@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🎮 Emotion Catcher</title>
+  <meta name="viewport" content="width=700,initial-scale=1">
+  <style>
+    body {
+      background: linear-gradient(120deg,#0f1115 0%,#232b3e 100%);
+      min-height: 100vh;
+      margin: 0;
+      font-family: 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      width: 700px;
+      max-width: 98vw;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 {
+      text-align: center;
+      margin: 24px 0 18px 0;
+      font-size: 2.3rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #fff;
+    }
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #232b3e;
+      border-radius: 8px;
+      padding: 10px 0 6px 0;
+      margin-bottom: 18px;
+      font-size: 18px;
+      font-weight: 500;
+      box-shadow: 0 2px 8px #0002;
+      width: 100%;
+      color: #fff;
+    }
+    .status-bar > div {
+      flex: 1;
+      text-align: center;
+    }
+    .game-area {
+      width: 700px;
+      height: 380px;
+      background: linear-gradient(#101522,#0a0d14);
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 2px 12px #0003;
+      margin-bottom: 18px;
+    }
+    .emoji {
+      position: absolute;
+      font-size: 32px;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,0.6));
+      user-select: none;
+      pointer-events: none;
+      transition: opacity 0.3s ease-out;
+    }
+    .game-area.explosion {
+      animation: shake 0.1s 3, flash-red 0.5s;
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+    @keyframes flash-red {
+      0% { background: linear-gradient(#101522,#0a0d14); }
+      20% { background: linear-gradient(#4a1010,#2a0505); }
+      100% { background: linear-gradient(#101522,#0a0d14); }
+    }
+    .basket {
+      position: absolute;
+      width: 100px;
+      height: 24px;
+      background: #3ea6ff;
+      border-radius: 8px;
+      bottom: 0px;
+      left: 300px;
+    }
+    .basket-top {
+      position: absolute;
+      width: 100px;
+      height: 3px;
+      background: #9cd1ff;
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
+      bottom: 0px;
+      left: 300px;
+      pointer-events: none;
+    }
+    .ground {
+      position: absolute;
+      left: 0;
+      bottom: 0px;
+      width: 700px;
+      height: 10px;
+      background: #222a3a;
+    }
+    .overlay {
+      position: absolute;
+      left: 0; top: 0; width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.66);
+      z-index: 10;
+      color: #e8eefc;
+      font-size: 36px;
+      font-weight: 700;
+      flex-direction: column;
+    }
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 8px;
+    }
+    .game-btn {
+      padding: 7px 28px;
+      font-size: 1.1rem;
+      border-radius: 6px;
+      border: none;
+      background: #3ea6ff;
+      color: #fff;
+      font-weight: 600;
+      box-shadow: 0 2px 8px #0001;
+      cursor: pointer;
+      margin-right: 8px;
+      outline: none;
+      transition: background 0.2s;
+    }
+    .game-btn:active {
+      background: #1b7fd6;
+    }
+    .catch-btn {
+      font-size: 1.3rem;
+      padding: 12px 48px;
+      margin-bottom: 10px;
+      background: #ffb700;
+      color: #232b3e;
+      font-weight: 700;
+      border-radius: 8px;
+      border: none;
+      box-shadow: 0 2px 8px #0002;
+      cursor: pointer;
+      outline: none;
+      transition: background 0.2s;
+    }
+    .tip {
+      text-align: center;
+      color: #aaa;
+      font-size: 15px;
+      margin-top: 8px;
+      margin-bottom: 12px;
+    }
+    .levelup {
+      animation: flash 0.7s linear;
+    }
+    @keyframes flash {
+      0% { color: #ffe066; }
+      50% { color: #ff7a7a; }
+      100% { color: #ffe066; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎮 Emotion Catcher</h1>
+    <div class="status-bar">
+      <div><span style="color:#f7e06e;">Score</span><br><span id="score">0</span></div>
+      <div><span style="color:#7ed957;">Level</span><br><span id="level">1</span></div>
+      <div><span style="color:#ff7a7a;">Lives</span><br><span id="lives">❤️ × 3</span></div>
+      <div><span style="color:#7ecbff;">Status</span><br><span id="status">Idle</span></div>
+    </div>
+    <div class="game-area" id="game-area">
+      <div class="basket" id="basket"></div>
+      <div class="basket-top" id="basket-top"></div>
+      <div class="ground"></div>
+      <!-- Emojis will be rendered here dynamically -->
+      <div class="overlay" id="overlay" style="display:none;">
+        💀 Game Over 💀<br><span style="font-size:16px;font-weight:400;margin-top:8px;">Press Reset to restart</span>
+      </div>
+    </div>
+    <div class="controls">
+      <button class="game-btn" id="start">Start</button>
+      <button class="game-btn" id="pause">Pause</button>
+      <button class="game-btn" id="reset">Reset</button>
+      <button class="game-btn" id="audio-toggle">Audio: Off</button>
+    </div>
+    <div class="tip">Use ← → keys to move the basket and catch falling emojis: 😀😄😊=+1 💖=+3 😡=−1 & −1 life.<br>⚠️ Avoid 💣 bombs - they end the game instantly! Level up every 12 points!</div>
+  </div>
+  <script>
+    // --- Audio Engine (WebAudio) ---
+    let AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+    let masterGain, musicGain, sfxGain;
+    let musicNode = null;
+    let audioEnabled = false;
+
+    function initAudio() {
+      if (audioCtx) return;
+      audioCtx = new AudioCtx();
+      masterGain = audioCtx.createGain();
+      musicGain = audioCtx.createGain();
+      sfxGain = audioCtx.createGain();
+      musicGain.gain.value = 0.35; // background music volume
+      sfxGain.gain.value = 0.8; // sfx volume
+      masterGain.gain.value = 1.0;
+      musicGain.connect(masterGain);
+      sfxGain.connect(masterGain);
+      masterGain.connect(audioCtx.destination);
+    }
+
+    // Piano-style light background music
+    function playPianoNote(freq, startTime, dur, vel, send) {
+      // Create a simple piano-like timbre with two partials and a percussive envelope
+      const o1 = audioCtx.createOscillator(); // fundamental
+      const o2 = audioCtx.createOscillator(); // higher partial
+      const g = audioCtx.createGain();
+      const lp = audioCtx.createBiquadFilter();
+      o1.type = 'sine';
+      o2.type = 'triangle';
+      o1.frequency.setValueAtTime(freq, startTime);
+      o2.frequency.setValueAtTime(freq*2, startTime);
+      lp.type = 'lowpass';
+      lp.frequency.setValueAtTime(1800, startTime);
+      lp.Q.value = 0.7;
+      g.gain.setValueAtTime(0.0001, startTime);
+      // Fast attack, medium decay to emulate piano pluck
+      g.gain.exponentialRampToValueAtTime(Math.max(0.02, vel), startTime + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, startTime + dur);
+      o1.connect(g); o2.connect(g);
+      g.connect(lp);
+      lp.connect(musicGain);
+      if (send) lp.connect(send);
+      o1.start(startTime); o2.start(startTime);
+      o1.stop(startTime + dur + 0.05); o2.stop(startTime + dur + 0.05);
+    }
+
+    function startMusic() {
+      if (!audioEnabled) return;
+      if (!audioCtx) initAudio();
+      if (musicNode) return; // already playing
+      const tempo = 76; // bpm, gentle
+      const beat = 60/tempo; // seconds per beat
+      // Major pentatonic for a light, consonant palette
+      const scale = [0, 2, 4, 7, 9];
+      const baseFreq = 261.63; // C4
+
+      // Global delay send for space
+      const delay = audioCtx.createDelay(0.6);
+      const fb = audioCtx.createGain();
+      delay.delayTime.value = 0.28;
+      fb.gain.value = 0.16;
+      delay.connect(fb); fb.connect(delay);
+      delay.connect(musicGain);
+
+      let step = 0;
+      function schedule() {
+        if (!audioCtx) return;
+        const now = audioCtx.currentTime;
+        for (let i = 0; i < 8; i++) {
+          const t = now + i * beat;
+          const degree = scale[(step + i) % scale.length];
+          const leadFreq = baseFreq * Math.pow(2, (degree + 12)/12); // one octave up
+          // lead note
+          playPianoNote(leadFreq, t, beat*0.9, 0.22, delay);
+          // soft bass every 4 beats
+          if (((step + i) % 4) === 0) {
+            playPianoNote(baseFreq/2, t, beat*1.2, 0.12, delay);
+          }
+          // add a gentle harmony a fifth above on off-beats
+          if (((step + i) % 2) === 1) {
+            playPianoNote(leadFreq * Math.pow(2, 7/12), t, beat*0.7, 0.12, delay);
+          }
+        }
+        step += 8;
+        musicNode._timer = setTimeout(schedule, beat*1000*6);
+      }
+
+      musicNode = { delay, fb, _timer: null };
+      schedule();
+    }
+
+    function stopMusic() {
+      if (musicNode) {
+        clearTimeout(musicNode._timer);
+        ['delay','fb'].forEach(k=>{
+          const n = musicNode[k];
+          if (!n) return;
+          try { if (n.stop) n.stop(); } catch(_){}
+          try { n.disconnect(); } catch(_){}
+        });
+        musicNode = null;
+      }
+    }
+
+    // Score SFX
+    function playScoreSfx(val) {
+      if (!audioEnabled) return;
+      if (!audioCtx) initAudio();
+      if (val >= 3) {
+        playBeep(880, 0.06);
+        setTimeout(()=>playBeep(1175, 0.06), 70);
+      } else if (val > 0) {
+        playBeep(880, 0.05);
+      } else if (val < 0) {
+        playBeep(220, 0.08);
+      }
+    }
+
+    // One-shot SFX helpers
+    function playBeep(freq = 600, dur = 0.1) {
+      if (!audioEnabled) return;
+      if (!audioCtx) initAudio();
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.type = 'sine';
+      o.frequency.value = freq;
+      g.gain.value = 0.0;
+      o.connect(g); g.connect(sfxGain);
+      const t = audioCtx.currentTime;
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.8, t + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+      o.start(t);
+      o.stop(t + dur + 0.02);
+    }
+
+    function playNoiseBoom(dur = 0.35) {
+      if (!audioEnabled) return;
+      if (!audioCtx) initAudio();
+      const bufferSize = audioCtx.sampleRate * dur;
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        // Pink-ish noise envelope for explosion feel
+        const white = (Math.random()*2-1);
+        const decay = Math.exp(-3*i/bufferSize);
+        data[i] = white * decay;
+      }
+      const src = audioCtx.createBufferSource();
+      const g = audioCtx.createGain();
+      const bp = audioCtx.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.value = 180;
+      bp.Q.value = 0.6;
+      g.gain.value = 1.0;
+      src.buffer = buffer;
+      src.connect(bp); bp.connect(g); g.connect(sfxGain);
+      src.start();
+    }
+
+    function setAudioEnabled(on) {
+      audioEnabled = on;
+      const btn = document.getElementById('audio-toggle');
+      btn.textContent = on ? 'Audio: On' : 'Audio: Off';
+      if (on) {
+        if (!audioCtx) initAudio();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        startMusic();
+      } else {
+        stopMusic();
+      }
+    }
+
+    // --- Game Config ---
+    const EMOJIS = ['😀','😄','😊','💖','😡'];
+    const VALUES = {'😀':1, '😄':1, '😊':1, '💖':3, '😡':-1, '💣':0};
+    const LEVEL_UP_SCORE = 12;
+    const MAX_LIVES = 3;
+    const MAX_LEVEL = 5;
+    const CANVAS_W = 700, CANVAS_H = 380;
+    const BASKET_W = 100, BASKET_H = 24, BASKET_Y = CANVAS_H;
+    const BASKET_SPEED = 420; // pixels per second for smooth movement
+    const BASE_FALL_SPEED = 2.5;
+    const BASE_SPAWN_INTERVAL = 1200;
+    const BASE_BOMB_CHANCE = 0.12; // 12% chance for bomb at level 1
+    
+    // --- State ---
+    let score = 0, level = 1, lives = MAX_LIVES;
+    let running = false, paused = false, gameOver = false, levelTransition = false;
+    let drops = [];
+    let basketX = CANVAS_W / 2;
+    let spawnTimer = 0;
+    let lastFrame = 0;
+    let animationId = null;
+    let keysPressed = {left: false, right: false};
+    let overlay = document.getElementById('overlay');
+    let basket = document.getElementById('basket');
+    let basketTop = document.getElementById('basket-top');
+    let gameArea = document.getElementById('game-area');
+    
+    // --- UI Update ---
+    function updateStatus() {
+      document.getElementById('score').textContent = score;
+      document.getElementById('level').textContent = level;
+      document.getElementById('lives').textContent = `❤️ × ${lives}`;
+      let statusText = 'Idle';
+      if (gameOver) statusText = 'Game Over';
+      else if (levelTransition) statusText = 'Level Up!';
+      else if (running) statusText = paused ? 'Paused' : 'Playing';
+      document.getElementById('status').textContent = statusText;
+    }
+    function showOverlay(msg) {
+      overlay.innerHTML = msg;
+      overlay.style.display = '';
+    }
+    function hideOverlay() {
+      overlay.style.display = 'none';
+    }
+    function renderBasket() {
+      basket.style.left = (basketX - BASKET_W/2) + 'px';
+      basketTop.style.left = (basketX - BASKET_W/2) + 'px';
+    }
+    function renderDrops() {
+      Array.from(document.getElementsByClassName('emoji')).forEach(e=>e.remove());
+      for (let d of drops) {
+        let e = document.createElement('div');
+        e.className = 'emoji';
+        e.textContent = d.ch;
+        e.style.left = (d.x-16) + 'px';
+        e.style.top = d.y + 'px';
+        e.style.opacity = d.opacity !== undefined ? d.opacity : 1;
+        if (d.ch === '💣') {
+          e.style.color = '#ff7a7a';
+        } else {
+          e.style.color = d.value>=1&&d.value<3?'#ffee88':(d.value>=3?'#ff80d5':'#ff7a7a');
+        }
+        gameArea.appendChild(e);
+      }
+    }
+    
+    // --- Game Logic ---
+    function randomEmoji() {
+      return EMOJIS[Math.floor(Math.random()*EMOJIS.length)];
+    }
+    function spawnDrop() {
+      // Number of emojis spawned at once increases with level
+      let spawnCount = Math.min(level, 3); // 1 at level 1, 2 at level 2, 3 at level 3+
+      
+      for (let i = 0; i < spawnCount; i++) {
+        let ch;
+        // Bomb chance increases with level (12% at level 1, up to 24% at level 5)
+        let bombChance = BASE_BOMB_CHANCE + (level - 1) * 0.03;
+        if (Math.random() < bombChance) {
+          ch = '💣';
+        } else {
+          ch = randomEmoji();
+        }
+        let x = 30 + Math.random()*(CANVAS_W-60);
+        // Add slight vertical offset so they don't all spawn at exact same Y
+        let yOffset = i * -20;
+        drops.push({x, y:-30+yOffset, ch, value:VALUES[ch], opacity:1, caught:false, fadeTime:0});
+      }
+    }
+    function updateDrops(dt) {
+      let newDrops = [];
+      for (let d of drops) {
+        // Fall speed increases with level
+        let fallSpeed = BASE_FALL_SPEED * (1 + level * 0.25);
+        d.y += fallSpeed;
+        // Check collision with basket (basket is at the bottom)
+        let bx1 = basketX - BASKET_W/2, bx2 = basketX + BASKET_W/2;
+        let by1 = CANVAS_H - BASKET_H, by2 = CANVAS_H;
+        if (d.x >= bx1 && d.x <= bx2 && d.y >= by1-20 && d.y <= by2+10) {
+          // BOMB EXPLOSION!
+          if (d.ch === '💣') {
+            handleBombExplosion(d);
+            return;
+          }
+          // Normal catch: immediately remove the emoji and update score
+          score += d.value;
+          if (d.value < 0) lives--;
+          playScoreSfx(d.value);
+          // Don't add to newDrops - emoji disappears immediately
+          continue;
+        }
+        if (d.y > CANVAS_H+40) continue;
+        newDrops.push(d);
+      }
+      drops = newDrops;
+      
+      // Level up logic - show transition screen
+      if (score >= level * LEVEL_UP_SCORE && level < MAX_LEVEL && !levelTransition) {
+        levelTransition = true;
+        running = false;
+        showOverlay('🎉 Level Complete!<br><span style="font-size:20px;font-weight:400;margin-top:12px;">Press SPACE to start next level</span>');
+        playBeep(880, 0.15);
+        updateStatus();
+        return;
+      }
+      // Game over logic
+      if (lives <= 0) {
+        lives = 0;
+        gameOver = true;
+        running = false;
+        showOverlay('💀 Game Over 💀<br><span style="font-size:16px;font-weight:400;margin-top:8px;">Press Reset to restart</span>');
+        playNoiseBoom(0.4);
+        cancelAnimationFrame(animationId);
+        updateStatus();
+        return;
+      }
+      // Win logic
+      if (level === MAX_LEVEL && score >= MAX_LEVEL * LEVEL_UP_SCORE) {
+        gameOver = true;
+        running = false;
+          showOverlay('🎉 Victory! 🎉<br><span style="font-size:16px;font-weight:400;margin-top:8px;">Press Reset to play again</span>');
+          playBeep(523.25, 0.1); setTimeout(()=>playBeep(659.25,0.1),120); setTimeout(()=>playBeep(783.99,0.12),240);
+        cancelAnimationFrame(animationId);
+        updateStatus();
+        return;
+      }
+    }
+    
+    function handleBombExplosion(bombDrop) {
+      // Stop game immediately
+      running = false;
+      gameOver = true;
+      // Play explosion SFX and stop music
+      playNoiseBoom(0.5);
+      stopMusic();
+      
+      // Change bomb to explosion emoji
+      bombDrop.ch = '💥';
+      bombDrop.caught = true;
+      bombDrop.fadeTime = 0;
+      
+      // Add explosion effect to game area
+      gameArea.classList.add('explosion');
+      
+      // Update status to show explosion
+      document.getElementById('status').textContent = '💣 Explosion';
+      
+      // Start fade out explosion over 400ms
+      let explosionFade = setInterval(() => {
+        bombDrop.fadeTime += 50;
+        bombDrop.opacity = Math.max(0, 1 - (bombDrop.fadeTime / 400));
+        renderDrops();
+        if (bombDrop.fadeTime >= 400) {
+          clearInterval(explosionFade);
+          drops = [];
+        }
+      }, 50);
+      
+      // Show Game Over after 500ms
+      setTimeout(() => {
+        gameArea.classList.remove('explosion');
+        showOverlay('💀 Game Over 💀<br><span style="font-size:16px;font-weight:400;margin-top:8px;">Press Reset to restart</span>');
+        updateStatus();
+        cancelAnimationFrame(animationId);
+      }, 500);
+    }
+    function gameLoop(ts) {
+      if (!lastFrame) lastFrame = ts;
+      let dt = ts - lastFrame;
+      lastFrame = ts;
+      
+      // Handle smooth basket movement
+      if (!gameOver && !levelTransition) {
+        if (keysPressed.left && running && !paused) {
+          basketX = Math.max(BASKET_W/2, basketX - BASKET_SPEED * (dt/1000));
+          renderBasket();
+        }
+        if (keysPressed.right && running && !paused) {
+          basketX = Math.min(CANVAS_W - BASKET_W/2, basketX + BASKET_SPEED * (dt/1000));
+          renderBasket();
+        }
+      }
+      
+      if (running && !paused && !gameOver && !levelTransition) {
+        spawnTimer += dt;
+        // Spawn interval decreases with level (faster spawning)
+        let spawnInterval = BASE_SPAWN_INTERVAL * (1 - level * 0.08);
+        if (spawnTimer > spawnInterval) {
+          spawnDrop();
+          spawnTimer = 0;
+        }
+        updateDrops(dt);
+        renderDrops();
+        updateStatus();
+      }
+      animationId = requestAnimationFrame(gameLoop);
+    }
+    
+    function startNextLevel() {
+      if (!levelTransition) return;
+      level++;
+      levelTransition = false;
+      running = true;
+      hideOverlay();
+      drops = []; // Clear any remaining drops
+      spawnTimer = 0;
+      updateStatus();
+      playBeep(660, 0.08);
+    }
+    
+    function startGame() {
+      score = 0; level = 1; lives = MAX_LIVES;
+      running = true; paused = false; gameOver = false; levelTransition = false;
+      drops = [];
+      basketX = CANVAS_W / 2;
+      spawnTimer = 0;
+      lastFrame = 0;
+      keysPressed = {left: false, right: false};
+      hideOverlay();
+      renderBasket();
+      updateStatus();
+      spawnDrop();
+      if (!animationId) animationId = requestAnimationFrame(gameLoop);
+      startMusic();
+    }
+    function pauseGame() {
+      if (!running || gameOver || levelTransition) return;
+      paused = !paused;
+      updateStatus();
+      if (paused) {
+        stopMusic();
+      } else {
+        startMusic();
+      }
+    }
+    function resetGame() {
+      score = 0; level = 1; lives = MAX_LIVES;
+      running = false; paused = false; gameOver = false; levelTransition = false;
+      drops = [];
+      basketX = CANVAS_W / 2;
+      spawnTimer = 0;
+      keysPressed = {left: false, right: false};
+      hideOverlay();
+      renderBasket();
+      renderDrops();
+      updateStatus();
+      stopMusic();
+    }
+    
+    // --- Event Bindings ---
+    document.getElementById('start').onclick = ()=>{ startGame(); };
+    document.getElementById('pause').onclick = ()=>{ pauseGame(); };
+    document.getElementById('reset').onclick = ()=>{ resetGame(); };
+    document.getElementById('audio-toggle').onclick = ()=>{
+      // In browsers, audio must be started by a user gesture
+      if (!audioEnabled) {
+        initAudio();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        setAudioEnabled(true);
+      } else {
+        setAudioEnabled(false);
+      }
+    };
+    
+    document.addEventListener('keydown', e=>{
+      // Handle space bar for level transition
+      if (e.key===' ' || e.key==='Spacebar') {
+        if (levelTransition) {
+          startNextLevel();
+          e.preventDefault();
+          return;
+        }
+        // Allow space to toggle audio when idle
+        if (!running && !gameOver) {
+          setAudioEnabled(!audioEnabled);
+        }
+      }
+      // Handle arrow keys for smooth movement
+      if (e.key==='ArrowLeft') {
+        keysPressed.left = true;
+        e.preventDefault();
+      }
+      if (e.key==='ArrowRight') {
+        keysPressed.right = true;
+        e.preventDefault();
+      }
+    });
+    
+    document.addEventListener('keyup', e=>{
+      if (e.key==='ArrowLeft') {
+        keysPressed.left = false;
+      }
+      if (e.key==='ArrowRight') {
+        keysPressed.right = false;
+      }
+    });
+    
+    // --- Init ---
+    resetGame();
+    animationId = requestAnimationFrame(gameLoop);
+  </script>
+</body>
+</html>
